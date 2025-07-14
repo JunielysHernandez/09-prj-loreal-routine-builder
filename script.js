@@ -551,7 +551,8 @@ async function handleChatSubmit(event) {
 
     /* Call OpenAI API via Cloudflare Worker */
     const workerUrl =
-      window.CLOUDFLARE_WORKER_URL || "YOUR_CLOUDFLARE_WORKER_URL";
+      window.CLOUDFLARE_WORKER_URL ||
+      "https://product-aware-routine.herna954.workers.dev/";
     const response = await fetch(workerUrl, {
       method: "POST",
       headers: {
