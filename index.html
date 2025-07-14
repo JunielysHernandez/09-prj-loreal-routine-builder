@@ -23,12 +23,22 @@
         <h1 class="site-title">Smart Routine &amp; Product Advisor</h1>
       </header>
 
-      <!-- Category Filter -->
+      <!-- Search and Filter Section -->
       <div class="search-section">
-        <select id="categoryFilter">
-          <option value="" disabled selected>Choose a Category</option>
+        <div class="search-bar">
+          <input
+            type="text"
+            id="productSearch"
+            placeholder="Search products by name or keyword..."
+            class="search-input"
+          />
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        </div>
+        <select id="categoryFilter" class="category-filter">
+          <option value="">All Categories</option>
           <option value="cleanser">Cleansers</option>
           <option value="moisturizer">Moisturizers & Treatments</option>
+          <option value="skincare">Skincare</option>
           <option value="haircare">Haircare</option>
           <option value="makeup">Makeup</option>
           <option value="hair color">Hair Color</option>
@@ -42,19 +52,41 @@
       <!-- Products Grid -->
       <div id="productsContainer" class="products-grid"></div>
 
-      <!-- Selected Products -->
-      <div class="selected-products">
-        <h2>Selected Products</h2>
-        <div id="selectedProductsList"></div>
-        <button id="generateRoutine" class="generate-btn">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Routine
-        </button>
+      <!-- Selected Products Section -->
+      <div
+        class="selected-products"
+        id="selectedProductsSection"
+        style="display: none"
+      >
+        <h2>
+          <i class="fa-solid fa-heart"></i> Selected Products (<span
+            id="selectedCount"
+            >0</span
+          >)
+        </h2>
+        <div id="selectedProductsList" class="selected-products-list"></div>
+        <div class="selected-actions">
+          <button id="clearSelected" class="clear-btn">
+            <i class="fa-solid fa-trash"></i> Clear All
+          </button>
+          <button id="generateRoutine" class="generate-btn">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Routine
+          </button>
+        </div>
       </div>
 
       <!------- Chat Area ------->
-      <section class="chatbox">
-        <h2>Let's Build Your Routine</h2>
-        <div id="chatWindow" class="chat-window"></div>
+      <section class="chatbox" id="chatSection" style="display: none">
+        <h2><i class="fa-solid fa-comments"></i> Your Personalized Routine</h2>
+        <div id="chatWindow" class="chat-window">
+          <div class="welcome-message">
+            <p>
+              Hi! I'm your L'Oréal routine advisor. Select some products above
+              and click "Generate Routine" to get started, or ask me any
+              questions about skincare and beauty!
+            </p>
+          </div>
+        </div>
 
         <form id="chatForm" class="chat-form">
           <label for="userInput" class="visually-hidden">Message</label>
@@ -64,7 +96,6 @@
             type="text"
             placeholder="Ask me about products or routines…"
             autocomplete="off"
-            required
           />
           <button type="submit" id="sendBtn">
             <i class="fa-solid fa-paper-plane"></i>
