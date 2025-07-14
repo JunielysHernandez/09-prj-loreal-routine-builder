@@ -31,6 +31,24 @@
         <h1 class="site-title">Smart Routine &amp; Product Advisor</h1>
       </header>
 
+      <!-- Add this right after the header section, before the search section -->
+      <div class="language-toggle">
+        <div class="language-buttons">
+          <button id="englishBtn" class="language-btn active" data-lang="en">
+            <i class="fa-solid fa-language"></i> English
+          </button>
+          <button id="arabicBtn" class="language-btn" data-lang="ar">
+            <i class="fa-solid fa-language"></i> العربية
+          </button>
+          <button id="frenchBtn" class="language-btn" data-lang="fr">
+            <i class="fa-solid fa-language"></i> Français
+          </button>
+          <button id="spanishBtn" class="language-btn" data-lang="es">
+            <i class="fa-solid fa-language"></i> Español
+          </button>
+        </div>
+      </div>
+
       <!-- Search and Filter Section -->
       <div class="search-section">
         <div class="search-bar">
@@ -59,6 +77,16 @@
         <button id="toggleAllDetails" class="toggle-all-btn">
           <i class="fa-solid fa-eye"></i> Show All Details
         </button>
+        <div class="web-search-toggle">
+          <label class="search-toggle-label">
+            <input type="checkbox" id="enableWebSearch" checked />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">
+              <i class="fa-solid fa-globe"></i> Include web search in AI
+              responses
+            </span>
+          </label>
+        </div>
       </div>
 
       <!-- Products Grid -->
