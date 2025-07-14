@@ -146,7 +146,7 @@ body::before {
 /* —— Search and Filter Section —— */
 .search-section {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1fr auto;
   gap: 20px;
   margin-bottom: 40px;
   position: relative;
@@ -219,6 +219,34 @@ body::before {
     var(--luxury-gradient) border-box;
   box-shadow: var(--shadow);
   transform: translateY(-2px);
+}
+
+/* New toggle all details button */
+.toggle-all-btn {
+  padding: 20px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  border-radius: var(--border-radius);
+  background: linear-gradient(var(--white), var(--white)) padding-box,
+    var(--loreal-red) border-box;
+  color: var(--loreal-red);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-light);
+  white-space: nowrap;
+}
+
+.toggle-all-btn:hover {
+  background: linear-gradient(var(--loreal-red), var(--loreal-red)) padding-box,
+    var(--loreal-red) border-box;
+  color: var(--white);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.toggle-all-btn i {
+  margin-right: 8px;
 }
 
 /* —— Products Grid —— */
@@ -382,15 +410,35 @@ body::before {
 .product-description {
   font-size: 14px;
   color: var(--loreal-gray);
-  line-height: 1.4;
+  line-height: 1.6;
   display: none;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #e0e0e0;
+  margin-top: 15px;
+  padding: 15px;
+  background: linear-gradient(135deg, #faf9f8 0%, #f5f3f0 100%);
+  border: 1px solid rgba(227, 165, 53, 0.2);
+  border-radius: var(--border-radius-small);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.4s ease;
+}
+
+.product-description p {
+  margin-bottom: 8px;
+}
+
+.product-description p:last-child {
+  margin-bottom: 0;
+}
+
+.product-description strong {
+  color: var(--loreal-red);
+  font-weight: 600;
 }
 
 .product-card.expanded .product-description {
   display: block;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .expand-btn {
@@ -892,6 +940,12 @@ body::before {
 @media (max-width: 768px) {
   .search-section {
     grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .toggle-all-btn {
+    padding: 15px 20px;
+    font-size: 14px;
   }
 
   .products-grid {

@@ -8,6 +8,7 @@ let chatHistory = [];
 /* Get references to DOM elements */
 const productSearch = document.getElementById("productSearch");
 const categoryFilter = document.getElementById("categoryFilter");
+const toggleAllDetailsBtn = document.getElementById("toggleAllDetails");
 const productsContainer = document.getElementById("productsContainer");
 const selectedProductsSection = document.getElementById(
   "selectedProductsSection"
@@ -21,6 +22,9 @@ const chatForm = document.getElementById("chatForm");
 const chatWindow = document.getElementById("chatWindow");
 const userInput = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
+
+/* Global variable to track if all details are shown */
+let allDetailsExpanded = false;
 
 /* Initialize the application when page loads */
 document.addEventListener("DOMContentLoaded", async () => {
@@ -81,17 +85,33 @@ function displayProducts(products) {
           <div class="product-brand">${product.brand}</div>
           <h3>${product.name}</h3>
           <div class="product-category">${product.category}</div>
-          <button class="expand-btn" onclick="toggleDescription(${product.id})">
-            <span class="expand-text">Show details</span>
+          <button class="expand-btn" data-product-id="${product.id}">
+            <span class="expand-text">SHOW DETAILS</span>
           </button>
           <div class="product-description" id="desc-${product.id}">
-            ${product.description}
+            <p><strong>About this product:</strong></p>
+            <p>${product.description}</p>
           </div>
         </div>
       </div>
     `
     )
     .join("");
+
+  /* Add event listeners for expand buttons after creating the HTML */
+  addExpandButtonListeners();
+}
+
+/* Add event listeners for expand/collapse buttons */
+function addExpandButtonListeners() {
+  const expandButtons = document.querySelectorAll(".expand-btn");
+  expandButtons.forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent product selection when clicking expand button
+      const productId = button.getAttribute("data-product-id");
+      toggleDescription(productId);
+    });
+  });
 }
 
 /* Toggle product description visibility */
@@ -101,10 +121,46 @@ function toggleDescription(productId) {
 
   if (card.classList.contains("expanded")) {
     card.classList.remove("expanded");
-    expandBtn.textContent = "Show details";
+    expandBtn.textContent = "SHOW DETAILS";
   } else {
     card.classList.add("expanded");
-    expandBtn.textContent = "Hide details";
+    expandBtn.textContent = "HIDE DETAILS";
+  }
+}
+
+/* Toggle all product details at once */
+function toggleAllProductDetails() {
+  // Get all product cards currently displayed
+  const productCards = document.querySelectorAll(".product-card");
+
+  if (allDetailsExpanded) {
+    // Hide all details
+    productCards.forEach((card) => {
+      card.classList.remove("expanded");
+      const expandBtn = card.querySelector(".expand-btn .expand-text");
+      if (expandBtn) {
+        expandBtn.textContent = "SHOW DETAILS";
+      }
+    });
+
+    // Update button text and icon
+    toggleAllDetailsBtn.innerHTML =
+      '<i class="fa-solid fa-eye"></i> Show All Details';
+    allDetailsExpanded = false;
+  } else {
+    // Show all details
+    productCards.forEach((card) => {
+      card.classList.add("expanded");
+      const expandBtn = card.querySelector(".expand-btn .expand-text");
+      if (expandBtn) {
+        expandBtn.textContent = "HIDE DETAILS";
+      }
+    });
+
+    // Update button text and icon
+    toggleAllDetailsBtn.innerHTML =
+      '<i class="fa-solid fa-eye-slash"></i> Hide All Details';
+    allDetailsExpanded = true;
   }
 }
 
@@ -269,10 +325,16 @@ function filterProducts() {
   }
 
   displayProducts(filteredProducts);
+
+  // Reset the toggle state when filtering
+  allDetailsExpanded = false;
+  toggleAllDetailsBtn.innerHTML =
+    '<i class="fa-solid fa-eye"></i> Show All Details';
 }
 
 /* Generate routine using selected products and OpenAI API */
 async function generateRoutine() {
+  // Check if user selected any products
   if (selectedProducts.length === 0) {
     addChatMessage(
       "ai",
@@ -281,7 +343,7 @@ async function generateRoutine() {
     return;
   }
 
-  // Show loading state
+  // Show loading state to user
   generateRoutineBtn.disabled = true;
   generateRoutineBtn.innerHTML = `
     <div class="loading">
@@ -295,7 +357,7 @@ async function generateRoutine() {
   `;
 
   try {
-    /* Prepare selected products data for API */
+    /* Step 1: Prepare selected products data for OpenAI */
     const productsData = selectedProducts.map((product) => ({
       name: product.name,
       brand: product.brand,
@@ -303,8 +365,10 @@ async function generateRoutine() {
       description: product.description,
     }));
 
-    /* Create prompt for OpenAI */
-    const prompt = `As a professional beauty and skincare advisor, create a personalized routine using these selected products:
+    console.log("Selected products:", productsData); // Help students see what data is being sent
+
+    /* Step 2: Create a detailed prompt for OpenAI's gpt-4o model */
+    const prompt = `As a professional L'Oréal beauty advisor, create a personalized routine using these selected products:
 
 ${productsData
   .map((p) => `- ${p.brand} ${p.name} (${p.category}): ${p.description}`)
@@ -312,62 +376,77 @@ ${productsData
 
 Please provide:
 1. A step-by-step routine (morning and/or evening as appropriate)
-2. The order of application
-3. Any tips for best results
+2. The order of application for these specific products
+3. Tips for best results with these L'Oréal products
 4. Frequency of use for each product
 
-Keep the response helpful, professional, and personalized. Focus on the specific products selected.`;
+Keep the response helpful, professional, and personalized to these specific L'Oréal products.`;
 
-    /* Call OpenAI API via Cloudflare Worker */
-    const workerUrl =
-      window.CLOUDFLARE_WORKER_URL || "YOUR_CLOUDFLARE_WORKER_URL";
-    const response = await fetch(workerUrl, {
+    /* Step 3: Prepare the request data for OpenAI's API */
+    const requestData = {
+      model: "gpt-4o", // Using OpenAI's latest model
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a professional L'Oréal beauty advisor. Provide helpful, accurate skincare and beauty advice using L'Oréal products.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      max_tokens: 1000, // Limit response length
+      temperature: 0.7, // Balance between creativity and consistency
+    };
+
+    console.log("Sending request to Cloudflare Worker..."); // Help students understand the flow
+
+    /* Step 4: Send request to your Cloudflare Worker */
+    const response = await fetch(window.CLOUDFLARE_WORKER_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a professional L'Oréal beauty advisor. Provide helpful, accurate skincare and beauty advice.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-      }),
+      body: JSON.stringify(requestData),
     });
 
+    console.log("Worker response status:", response.status); // Show students the response status
+
+    // Check if the request was successful
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      throw new Error(`API request failed with status: ${response.status}`);
     }
 
+    /* Step 5: Get the response from OpenAI */
     const data = await response.json();
+    console.log("OpenAI response:", data); // Help students see the full response
+
+    // Extract the AI's message from the response
     const routineText = data.choices[0].message.content;
 
-    /* Add the generated routine to chat */
+    /* Step 6: Add the generated routine to chat */
     addChatMessage("ai", routineText);
 
-    /* Add to chat history for context */
+    /* Step 7: Add to chat history for future questions */
     chatHistory.push({
       role: "assistant",
       content: routineText,
-      products: productsData,
+      products: productsData, // Keep track of which products were used
     });
-  } catch (error) {
-    console.error("Error generating routine:", error);
 
-    /* Fallback response if API fails */
+    console.log("Routine generated successfully!"); // Success message for students
+  } catch (error) {
+    console.error("Error generating routine:", error); // Help students debug issues
+
+    /* Fallback response if API fails - still provides value to user */
     const fallbackRoutine = generateFallbackRoutine(selectedProducts);
-    addChatMessage("ai", fallbackRoutine);
+    addChatMessage(
+      "ai",
+      `I'm having trouble connecting to the AI service right now, but here's a helpful routine based on your selected products:\n\n${fallbackRoutine}`
+    );
   } finally {
-    /* Reset button state */
+    /* Reset button state so user can try again */
     generateRoutineBtn.disabled = false;
     generateRoutineBtn.innerHTML = `
       <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Routine
@@ -606,6 +685,9 @@ function setupEventListeners() {
   /* Search and filter events */
   productSearch.addEventListener("input", filterProducts);
   categoryFilter.addEventListener("change", filterProducts);
+
+  /* Toggle all details button */
+  toggleAllDetailsBtn.addEventListener("click", toggleAllProductDetails);
 
   /* Product card clicks for selection */
   productsContainer.addEventListener("click", handleProductClick);
